@@ -751,3 +751,111 @@ function cancelEditURLPath(serviceId, originalPath) {
     const cell = document.getElementById('url-path-' + serviceId);
     cell.innerHTML = originalPath + ' <span class="edit-icon" onclick="editURLPath(\'' + serviceId + '\', \'' + originalPath + '\')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg></span>';
 }
+
+// 添加生成随机端口的函数
+function generateRandomPorts() {
+    const count = document.getElementById('port-count').value || 1;
+    const range = document.getElementById('port-range').value;
+    
+    fetch(`/api/generate-ports?count=${count}&range=${range}`)
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('random-ports-result');
+            const copyAllButton = document.getElementById('copy-all-ports');
+            if (data.error) {
+                resultDiv.innerHTML = `<p style="color: red;">错误: ${data.error}</p>`;
+                copyAllButton.style.display = 'none';
+            } else {
+                // 保存端口数据用于复制功能
+                window.generatedPorts = data.ports;
+                
+                // 显示端口列表，每个端口都可以单独复制
+                let portsHtml = '<p>生成的端口:</p><ul style="list-style-type: none; padding: 0;">';
+                data.ports.forEach(port => {
+                    portsHtml += `<li style="display: inline-block; margin-right: 10px;">
+                        <span style="text-decoration: underline; cursor: pointer;" 
+                              title="单击复制端口" 
+                              onclick="copyPort(${port})">${port}</span>
+                      </li>`;
+                });
+                portsHtml += '</ul>';
+                
+                resultDiv.innerHTML = portsHtml;
+                copyAllButton.style.display = 'inline-block';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const resultDiv = document.getElementById('random-ports-result');
+            resultDiv.innerHTML = `<p style="color: red;">请求失败: ${error.message}</p>`;
+        });
+}
+
+// 复制单个端口到剪贴板
+function copyPort(port) {
+    const text = port.toString();
+    
+    // 检查是否支持现代剪贴板API
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            console.log(`端口 ${port} 已复制到剪贴板`);
+        }).catch(err => {
+            console.error('复制失败: ', err);
+            // 降级到传统方法
+            fallbackCopyTextToClipboard(text);
+        });
+    } else {
+        // 降级到传统方法
+        fallbackCopyTextToClipboard(text);
+    }
+}
+
+// 复制所有端口到剪贴板
+function copyAllPorts() {
+    if (window.generatedPorts && window.generatedPorts.length > 0) {
+        const text = window.generatedPorts.join(', ');
+        
+        // 检查是否支持现代剪贴板API
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => {
+                console.log('所有端口已复制到剪贴板');
+            }).catch(err => {
+                console.error('复制失败: ', err);
+                // 降级到传统方法
+                fallbackCopyTextToClipboard(text);
+            });
+        } else {
+            // 降级到传统方法
+            fallbackCopyTextToClipboard(text);
+        }
+    }
+}
+
+// 传统复制方法（兼容性处理）
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // 避免滚动到底部
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            console.log('复制成功');
+        } else {
+            console.error('复制失败');
+        }
+    } catch (err) {
+        console.error('复制失败: ', err);
+    }
+    
+    document.body.removeChild(textArea);
+}

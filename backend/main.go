@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	// 添加yaml支持
@@ -238,6 +239,8 @@ func StartServer() {
 	http.HandleFunc("/api/save-column-config", saveColumnConfigHandler)
 	// 添加保存URL路径的路由
 	http.HandleFunc("/api/save-url-path", saveURLPathHandler)
+	// 添加生成随机端口的API
+	http.HandleFunc("/api/generate-ports", handleGeneratePorts)
 
 	// 移除静态文件处理器，由前端路由处理
 	// 前端构建后的文件将通过根路径处理器提供服务
@@ -678,6 +681,196 @@ func saveURLPathHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("URL路径保存成功")
 }
 
+// 生成随机端口处理函数
+func handleGeneratePorts(w http.ResponseWriter, r *http.Request) {
+	// 解析参数
+	countStr := r.URL.Query().Get("count")
+	rangeStr := r.URL.Query().Get("range")
+	count := 1 // 默认生成1个端口
+	
+	if countStr != "" {
+		parsedCount, err := strconv.Atoi(countStr)
+		if err != nil || parsedCount <= 0 || parsedCount > 100 {
+			response := GeneratePortsResponse{
+				Error: "端口数量必须是1-100之间的整数",
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		count = parsedCount
+	}
+	
+	// 解析范围参数
+	var startPort, endPort int
+	switch rangeStr {
+	case "1000-10000":
+		startPort, endPort = 1000, 10000
+	case "10001-30000":
+		startPort, endPort = 10001, 30000
+	case "30001-50000":
+		startPort, endPort = 30001, 50000
+	case "50001-65530":
+		startPort, endPort = 50001, 65530
+	default:
+		// 默认范围
+		startPort, endPort = 1000, 65530
+	}
+	
+	// 获取空闲端口
+	ports, err := getFreePortsInRange(count, startPort, endPort)
+	if err != nil {
+		response := GeneratePortsResponse{
+			Error: "无法获取空闲端口: " + err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	
+	response := GeneratePortsResponse{
+		Ports: ports,
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// 获取指定数量的空闲端口
+func getFreePorts(count int) ([]int, error) {
+	// 获取当前正在使用的端口
+	usedPorts, err := getUsedPorts()
+	if err != nil {
+		return nil, err
+	}
+	
+	// 查找空闲端口，从1000开始
+	freePorts := make([]int, 0, count)
+	currentPort := 1000
+	
+	// 寻找连续的空闲端口
+	for currentPort <= 65535 {
+		// 检查是否有足够的连续端口
+		consecutiveFree := true
+		tempPorts := make([]int, 0, count)
+		
+		for i := 0; i < count; i++ {
+			portToCheck := currentPort + i
+			// 检查端口是否已被使用
+			if usedPorts[portToCheck] || !isPortFree(portToCheck) {
+				consecutiveFree = false
+				currentPort += i + 1 // 跳过已检查的端口
+				break
+			}
+			tempPorts = append(tempPorts, portToCheck)
+		}
+		
+		if consecutiveFree {
+			freePorts = tempPorts
+			break
+		}
+	}
+	
+	if len(freePorts) < count {
+		return nil, fmt.Errorf("无法找到足够的连续空闲端口")
+	}
+	
+	return freePorts, nil
+}
+
+// 获取指定范围内的空闲端口
+func getFreePortsInRange(count, startPort, endPort int) ([]int, error) {
+	// 获取当前正在使用的端口
+	usedPorts, err := getUsedPorts()
+	if err != nil {
+		return nil, err
+	}
+	
+	// 查找空闲端口，在指定范围内
+	freePorts := make([]int, 0, count)
+	currentPort := startPort
+	
+	// 寻找连续的空闲端口
+	for currentPort <= endPort {
+		// 检查是否有足够的连续端口
+		consecutiveFree := true
+		tempPorts := make([]int, 0, count)
+		
+		for i := 0; i < count; i++ {
+			portToCheck := currentPort + i
+			// 检查端口是否在范围内
+			if portToCheck > endPort {
+				consecutiveFree = false
+				break
+			}
+			
+			// 检查端口是否已被使用
+			if usedPorts[portToCheck] || !isPortFree(portToCheck) {
+				consecutiveFree = false
+				currentPort += i + 1 // 跳过已检查的端口
+				break
+			}
+			tempPorts = append(tempPorts, portToCheck)
+		}
+		
+		if consecutiveFree {
+			freePorts = tempPorts
+			break
+		}
+		
+		// 防止无限循环
+		if currentPort > endPort {
+			break
+		}
+	}
+	
+	if len(freePorts) < count {
+		return nil, fmt.Errorf("在范围 %d-%d 内无法找到 %d 个连续空闲端口", startPort, endPort, count)
+	}
+	
+	return freePorts, nil
+}
+
+// 获取系统中当前正在使用的端口
+func getUsedPorts() (map[int]bool, error) {
+	usedPorts := make(map[int]bool)
+	
+	// 使用ss命令获取端口信息
+	cmd := exec.Command("ss", "-tuln")
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	
+	lines := strings.Split(string(output), "\n")
+	portRegex := regexp.MustCompile(`:(\d+)\s*$`)
+	
+	for _, line := range lines {
+		matches := portRegex.FindStringSubmatch(line)
+		if len(matches) > 1 {
+			port, err := strconv.Atoi(matches[1])
+			if err == nil {
+				usedPorts[port] = true
+			}
+		}
+	}
+	
+	return usedPorts, nil
+}
+
+// 检查指定端口是否真正可用
+func isPortFree(port int) bool {
+	// 尝试监听该端口
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return false
+	}
+	
+	// 关闭监听器
+	listener.Close()
+	return true
+}
+
 func getServices() ([]Service, error) {
 	// 使用ss命令获取网络连接信息
 	cmd := exec.Command("ss", "-tulnp")
@@ -906,4 +1099,10 @@ func shouldExcludeInterface(name string) bool {
 		}
 	}
 	return false
+}
+
+// 添加生成随机端口的结构体
+type GeneratePortsResponse struct {
+	Ports []int  `json:"ports"`
+	Error string `json:"error,omitempty"`
 }

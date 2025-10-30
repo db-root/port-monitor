@@ -10,16 +10,37 @@
         <h1>端口监控服务</h1>
         
         <div class="card">
-            <h2>网络接口</h2>
-            <div style="text-align: right; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="margin: 0;">网络接口</h2>
                 <button class="refresh-btn" onclick="loadInterfaces()">刷新接口</button>
             </div>
             <div id="interfaces-list"></div>
         </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="margin: 0;">生成随机端口</h2>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="port-count">生成端口数量:</label>
+                <select id="port-range" style="margin: 0 10px;">
+                    <option value="1000-10000">1000-10000</option>
+                    <option value="10001-30000">10001-30000</option>
+                    <option value="30001-50000">30001-50000</option>
+                    <option value="50001-65530">50001-65530</option>
+                </select>
+                <input type="number" id="port-count" min="1" max="100" value="1" style="width: 60px; margin: 0 10px;">
+                <button class="refresh-btn" onclick="generateRandomPorts()">生成端口</button>
+                <button class="refresh-btn" onclick="copyAllPorts()" id="copy-all-ports" style="display: none;">复制</button>
+            </div>
+            <div id="random-ports-result">
+                <p>点击"生成端口"按钮生成空闲端口</p>
+            </div>
+        </div>
         
         <div class="card">
-            <h2>运行中的服务</h2>
-            <div style="text-align: right; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="margin: 0;">运行中的服务</h2>
                 <button class="refresh-btn" onclick="loadServices()">刷新服务</button>
             </div>
             <div class="tab">
@@ -27,15 +48,6 @@
                 <button class="tablinks" onclick="openTab(event, 'tcpv6')">TCPv6 服务</button>
                 <button class="tablinks" onclick="openTab(event, 'udpv4')">UDPv4 服务</button>
                 <button class="tablinks" onclick="openTab(event, 'udpv6')">UDPv6 服务</button>
-            </div>
-            <!-- 列配置弹窗 -->
-            <div id="column-config-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
-                <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 300px; border-radius: 5px;">
-                    <span onclick="closeColumnConfig()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-                    <h3>选择要显示的列</h3>
-                    <div id="column-config-options"></div>
-                    <button onclick="saveColumnConfig()" style="margin-top: 15px; background-color: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer;">保存</button>
-                </div>
             </div>
             <div id="tcpv4" class="tabcontent" style="display: block;">
                 <div id="tcpv4-services-list"></div>
@@ -51,7 +63,6 @@
             </div>
         </div>
     </div>
-
     <script src="/static/js/script.js"></script>
 </body>
 </html>
