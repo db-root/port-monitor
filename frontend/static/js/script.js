@@ -791,6 +791,49 @@ function generateRandomPorts() {
         });
 }
 
+// 显示复制成功提示
+function showCopySuccess(message) {
+    // 检查是否已存在提示框，如果存在则先移除
+    const existingAlert = document.getElementById('copy-alert');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    // 创建提示元素
+    const alert = document.createElement('div');
+    alert.id = 'copy-alert';
+    alert.textContent = message;
+    alert.style.position = 'fixed';
+    alert.style.top = '20px';
+    alert.style.left = '50%';
+    alert.style.transform = 'translateX(-50%)';
+    alert.style.color = 'white';
+    alert.style.padding = '10px 20px';
+    alert.style.borderRadius = '4px';
+    alert.style.zIndex = '1000';
+    alert.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+    alert.style.transition = 'opacity 0.5s';
+    alert.style.opacity = '1';
+    alert.style.minWidth = '150px';
+    alert.style.textAlign = 'center';
+    
+    // 使用与刷新按钮相同的颜色
+    alert.style.backgroundColor = '#007bff';
+    alert.style.border = '2px solid #007bff';
+    
+    document.body.appendChild(alert);
+
+    // 2秒后自动移除提示并添加淡出效果
+    setTimeout(() => {
+        alert.style.opacity = '0';
+        setTimeout(() => {
+            if (alert.parentNode) {
+                document.body.removeChild(alert);
+            }
+        }, 500);
+    }, 2000);
+}
+
 // 复制单个端口到剪贴板
 function copyPort(port) {
     const text = port.toString();
@@ -799,14 +842,15 @@ function copyPort(port) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(text).then(() => {
             console.log(`端口 ${port} 已复制到剪贴板`);
+            showCopySuccess(`端口 ${port} 已复制到剪贴板`);
         }).catch(err => {
             console.error('复制失败: ', err);
             // 降级到传统方法
-            fallbackCopyTextToClipboard(text);
+            fallbackCopyTextToClipboard(text, `端口 ${port} 已复制到剪贴板`);
         });
     } else {
         // 降级到传统方法
-        fallbackCopyTextToClipboard(text);
+        fallbackCopyTextToClipboard(text, `端口 ${port} 已复制到剪贴板`);
     }
 }
 
@@ -819,20 +863,21 @@ function copyAllPorts() {
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(text).then(() => {
                 console.log('所有端口已复制到剪贴板');
+                showCopySuccess('所有端口已复制到剪贴板');
             }).catch(err => {
                 console.error('复制失败: ', err);
                 // 降级到传统方法
-                fallbackCopyTextToClipboard(text);
+                fallbackCopyTextToClipboard(text, '所有端口已复制到剪贴板');
             });
         } else {
             // 降级到传统方法
-            fallbackCopyTextToClipboard(text);
+            fallbackCopyTextToClipboard(text, '所有端口已复制到剪贴板');
         }
     }
 }
 
 // 传统复制方法（兼容性处理）
-function fallbackCopyTextToClipboard(text) {
+function fallbackCopyTextToClipboard(text, successMessage) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
     
@@ -850,6 +895,7 @@ function fallbackCopyTextToClipboard(text) {
         const successful = document.execCommand('copy');
         if (successful) {
             console.log('复制成功');
+            showCopySuccess(successMessage || '复制成功');
         } else {
             console.error('复制失败');
         }
