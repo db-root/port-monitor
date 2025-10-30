@@ -1,0 +1,20 @@
+{
+  "column_configs": null,
+  "interface_configs": [
+    {
+      "name": "ens2",
+      "show_links": true
+    },
+    {
+      "name": "公网",
+      "show_links": true
+    }
+  ],
+  "service_names": [
+    {
+      "service_id": "0.0.0.0:80:tcp",
+      "name": "nginx"
+    }
+  ],
+  "url_paths": null
+}

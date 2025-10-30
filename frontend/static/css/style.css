@@ -1,0 +1,85 @@
+body { font-family: Arial, sans-serif; margin: 20px; }
+h1 { color: #333; }
+.container { max-width: 1200px; margin: 0 auto; }
+.card { border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-bottom: 20px; }
+.card h2 { margin-top: 0; color: #555; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+th { background-color: #f2f2f2; }
+tr:hover { background-color: #f5f5f5; }
+a { color: #007bff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.refresh-btn { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
+.refresh-btn:hover { background-color: #0056b3; }
+/* Tab styles */
+.tab { overflow: hidden; border: 1px solid #ccc; background-color: #f1f1f1; }
+.tab button { background-color: #ddd; /* 未选中时比背景颜色更深 */ float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; }
+.tab button:hover { background-color: #ccc; }
+.tab button.active { background-color: #007bff; /* 选中时与刷新服务按钮颜色一致 */ color: white; }
+.tabcontent { display: none; padding: 6px 12px; border: 1px solid #ccc; border-top: none; }
+.edit-icon { cursor: pointer; margin-left: 5px; color: #007bff; }
+.edit-input { width: 80px; }
+.save-icon, .cancel-icon { cursor: pointer; margin: 0 2px; }
+.save-icon { color: green; }
+.cancel-icon { color: red; }
+/* Switch styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 26px; /* 原来是34px，减少四分之一变为26px */
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 26px; /* 设置为圆角 */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; /* 调整滑块内圆点的高度 */
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 50%; /* 保持圆形 */
+}
+
+/* 灰色齿轮图标样式 */
+.gear-icon {
+    color: #888888;
+    cursor: pointer;
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(34px); /* 调整移动距离 */
+    -ms-transform: translateX(34px);
+    transform: translateX(34px);
+}

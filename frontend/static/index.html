@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>端口监控服务</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>端口监控服务</h1>
+        
+        <div class="card">
+            <h2>网络接口</h2>
+            <div style="text-align: right; margin-bottom: 10px;">
+                <button class="refresh-btn" onclick="loadInterfaces()">刷新接口</button>
+            </div>
+            <div id="interfaces-list"></div>
+        </div>
+        
+        <div class="card">
+            <h2>运行中的服务</h2>
+            <div style="text-align: right; margin-bottom: 10px;">
+                <button class="refresh-btn" onclick="loadServices()">刷新服务</button>
+            </div>
+            <div class="tab">
+                <button class="tablinks active" onclick="openTab(event, 'tcpv4')">TCPv4 服务</button>
+                <button class="tablinks" onclick="openTab(event, 'tcpv6')">TCPv6 服务</button>
+                <button class="tablinks" onclick="openTab(event, 'udpv4')">UDPv4 服务</button>
+                <button class="tablinks" onclick="openTab(event, 'udpv6')">UDPv6 服务</button>
+            </div>
+            <!-- 列配置弹窗 -->
+            <div id="column-config-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
+                <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 300px; border-radius: 5px;">
+                    <span onclick="closeColumnConfig()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                    <h3>选择要显示的列</h3>
+                    <div id="column-config-options"></div>
+                    <button onclick="saveColumnConfig()" style="margin-top: 15px; background-color: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer;">保存</button>
+                </div>
+            </div>
+            <div id="tcpv4" class="tabcontent" style="display: block;">
+                <div id="tcpv4-services-list"></div>
+            </div>
+            <div id="tcpv6" class="tabcontent">
+                <div id="tcpv6-services-list"></div>
+            </div>
+            <div id="udpv4" class="tabcontent">
+                <div id="udpv4-services-list"></div>
+            </div>
+            <div id="udpv6" class="tabcontent">
+                <div id="udpv6-services-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
