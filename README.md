@@ -70,16 +70,31 @@ go run main.go
 ### 安装RPM包:
 
 ```bash
+# 通过URL直接安装（示例版本1.0.1）
+sudo rpm -ivh https://github.com/db-root/port-monitor/blob/master/dist/port-monitor-1.0.1-1.el8.x86_64.rpm
+
+# 或者本地安装
 sudo rpm -ivh dist/port-monitor-*.rpm
 ```
 
 ### 安装DEB包:
 
 ```bash
+# 通过URL直接安装（示例版本1.0.1）
+wget https://github.com/db-root/port-monitor/blob/master/dist/port-monitor_1.0.1_amd64.deb
+sudo dpkg -i port-monitor_1.0.1_amd64.deb
+
+# 或者本地安装
 sudo dpkg -i dist/port-monitor-*.deb
 ```
 
 ### 启动服务:
+
+```bash
+sudo systemctl enable --now port-monitor
+```
+
+或者分步执行：
 
 ```bash
 sudo systemctl start port-monitor
