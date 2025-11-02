@@ -3,3 +3,5 @@
 /config/config.yaml
 /config.yaml
 /port-monitor
+/build
+# /dist

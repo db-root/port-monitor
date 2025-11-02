@@ -49,19 +49,39 @@ go run main.go
 - 接口链接开关控制
 - 一键复制功能
 
-## 配置文件说明
+## 构建安装包
 
-配置文件位于 [config/config.yaml](file:///opt/code/golang/port-monitor/config/config.yaml)：
+项目支持构建RPM和DEB安装包，可以使用以下命令：
 
-- `addr`: 服务监听地址，默认为 0.0.0.0 (监听所有接口)
-- `port`: 服务监听端口，默认为 10810
-- `exclude`: 要排除显示的网络接口前缀，用逗号分隔
-- `get_ip_url`: 获取公网IP的API地址
+```bash
+./build-packages.sh
+```
 
-## 数据存储
+该脚本会使用Docker容器构建RPM和DEB包，并输出到 `dist` 目录。
 
-用户自定义的配置保存在 [data.json](file:///opt/code/golang/port-monitor/data.json) 文件中，包括：
-- 自定义服务名称
-- 接口配置
-- 列显示设置
-- URL路径映射
+安装后文件布局：
+- 二进制文件: `/usr/bin/port-monitor`
+- 前端文件: `/opt/port-monitor/frontend/static`
+- 配置文件: `/opt/port-monitor/config.yaml`
+- 数据文件: `/opt/port-monitor/data.json`
+- 日志文件: `/opt/port-monitor/server.log`
+- systemd服务: `/etc/systemd/system/port-monitor.service`
+
+### 安装RPM包:
+
+```bash
+sudo rpm -ivh dist/port-monitor-*.rpm
+```
+
+### 安装DEB包:
+
+```bash
+sudo dpkg -i dist/port-monitor-*.deb
+```
+
+### 启动服务:
+
+```bash
+sudo systemctl start port-monitor
+sudo systemctl enable port-monitor  # 开机自启
+```
